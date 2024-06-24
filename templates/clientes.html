@@ -1,0 +1,308 @@
+{% extends './layout.html' %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card-holder">
+                <div class="card-box bg-news">
+                    <h3 class="title">Ingreso de Nuevos Clientes</h3>
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}" role="alert">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <!-- Botón para mostrar el formulario -->
+                    <div class="container mt-3">
+                        <button id="mostrarFormularioBtn" class="btn btn-primary">Agregar Cliente</button>
+                    </div>
+
+                    <!-- Contenedor del formulario -->
+                    <div id="agregarClienteForm" style="display: none;">
+                        <div class="cerrar-formulario" style="text-align: right;">
+                            <button type="button" class="close" id="cerrarFormularioBtn" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <form action="{{ url_for('add_cliente') }}" method="post" id="addClienteForm">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="nombres">Nombres</label>
+                                    <div class="input-group">
+                                        <input type="text" name="nombres" id="nombres" class="form-control" placeholder="Ingrese nombres del cliente" required>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        </div>
+                                    </div>
+                                    <small id="nombresError" class="text-danger"></small>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="apellidos">Apellidos</label>
+                                    <div class="input-group">
+                                        <input type="text" name="apellidos" id="apellidos" class="form-control" placeholder="Ingrese apellidos del cliente" required>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        </div>
+                                    </div>
+                                    <small id="apellidosError" class="text-danger"></small>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="documento">Documento</label>
+                                <div class="input-group">
+                                    <input type="text" name="documento" id="documento" class="form-control" placeholder="Ingrese documento del cliente" required>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                    </div>
+                                </div>
+                                <small id="documentoError" class="text-danger"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <div class="input-group">
+                                    <input type="email" name="email" id="email" class="form-control" placeholder="Ingrese email del cliente" required>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    </div>
+                                </div>
+                                <small id="emailError" class="text-danger"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="direccion">Dirección</label>
+                                <div class="input-group">
+                                    <input type="text" name="direccion" id="direccion" class="form-control" placeholder="Ingrese dirección del cliente" required>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    </div>
+                                </div>
+                                <small id="direccionError" class="text-danger"></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="telefono">Teléfono</label>
+                                <div class="input-group">
+                                    <input type="text" name="telefono" id="telefono" class="form-control" placeholder="Ingrese teléfono del cliente" required>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                    </div>
+                                </div>
+                                <small id="telefonoError" class="text-danger"></small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Agregar cliente</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-5">
+    <h2>Tabla de Clientes</h2>
+    <div class="table-responsive">
+        <table id="tablasJs" class="table table-striped table-bordered table-hover">
+            <thead class="bg-green">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Nombres</th>
+                    <th scope="col">Apellidos</th>
+                    <th scope="col">Documento</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Dirección</th>
+                    <th scope="col">Teléfono</th>
+                    <th scope="col">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td>{{ cliente[0] }}</td>
+                    <td>{{ cliente[1] }}</td>
+                    <td>{{ cliente[2] }}</td>
+                    <td>{{ cliente[6] }}</td>
+                    <td>{{ cliente[4] }}</td>
+                    <td>{{ cliente[5] }}</td>
+                    <td>{{ cliente[3] }}</td>
+                    <td>
+                        <!-- Botón para abrir la ventana modal -->
+                        <button type="button" class="btn btn-sm btn-success" data-toggle="modal"
+                            data-target="#editarClienteModal{{ cliente[0] }}">
+                            <i class="fas fa-pencil-alt"></i> Editar
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% for cliente in clientes %}
+<!-- Ventana Modal para Editar Cliente -->
+<div class="modal fade" id="editarClienteModal{{ cliente[0] }}" tabindex="-1" role="dialog" aria-labelledby="editarClienteModal{{ cliente[0] }}Label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarClienteModal{{ cliente[0] }}Label">Editar Cliente</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('update_cliente', id_cliente=cliente[0]) }}" method="POST" id="editClienteForm{{ cliente[0] }}">
+                    <div class="form-group">
+                        <label for="nombres{{ cliente[0] }}">Nombres</label>
+                        <input type="text" class="form-control" id="nombres{{ cliente[0] }}" name="nombres" value="{{ cliente[1] }}" required>
+                        <small id="nombresError{{ cliente[0] }}" class="text-danger"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="apellidos{{ cliente[0] }}">Apellidos</label>
+                        <input type="text" class="form-control" id="apellidos{{ cliente[0] }}" name="apellidos" value="{{ cliente[2] }}" required>
+                        <small id="apellidosError{{ cliente[0] }}" class="text-danger"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="documento{{ cliente[0] }}">Documento</label>
+                        <input type="text" class="form-control" id="documento{{ cliente[0] }}" name="documento" value="{{ cliente[6] }}" required>
+                        <small id="documentoError{{ cliente[0] }}" class="text-danger"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="email{{ cliente[0] }}">Email</label>
+                        <input type="email" class="form-control" id="email{{ cliente[0] }}" name="email" value="{{ cliente[4] }}" required>
+                        <small id="emailError{{ cliente[0] }}" class="text-danger"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="direccion{{ cliente[0] }}">Dirección</label>
+                        <input type="text" class="form-control" id="direccion{{ cliente[0] }}" name="direccion" value="{{ cliente[5] }}" required>
+                        <small id="direccionError{{ cliente[0] }}" class="text-danger"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono{{ cliente[0] }}">Teléfono</label>
+                        <input type="text" class="form-control" id="telefono{{ cliente[0] }}" name="telefono" value="{{ cliente[3] }}" required>
+                        <small id="telefonoError{{ cliente[0] }}" class="text-danger"></small>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Actualizar Cliente</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const agregarClienteForm = document.getElementById('addClienteForm');
+        const editForms = document.querySelectorAll('[id^=editClienteForm]');
+
+        agregarClienteForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+            if (validateForm(this)) {
+                this.submit();
+            }
+        });
+
+        editForms.forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const formId = this.id.split('editClienteForm')[1];
+                if (validateForm(this, formId)) {
+                    this.submit();
+                }
+            });
+        });
+
+        function validateForm(form, formId = null) {
+            let isValid = true;
+
+            // Validación Nombres
+            const nombresInput = form.querySelector('#nombres' + (formId ? formId : ''));
+            const nombresError = form.querySelector('#nombresError' + (formId ? formId : ''));
+            const nombresValue = nombresInput.value.trim();
+            if (!/^[A-Za-záéíóúüñÁÉÍÓÚÜÑ\s]+$/.test(nombresValue)) {
+                isValid = false;
+                nombresError.textContent = "Nombres inválidos. Solo letras y espacios.";
+                nombresError.style.color = 'red';
+            } else {
+                nombresError.textContent = "";
+            }
+
+            // Validación Apellidos
+            const apellidosInput = form.querySelector('#apellidos' + (formId ? formId : ''));
+            const apellidosError = form.querySelector('#apellidosError' + (formId ? formId : ''));
+            const apellidosValue = apellidosInput.value.trim();
+            if (!/^[A-Za-záéíóúüñÁÉÍÓÚÜÑ\s]+$/.test(apellidosValue)) {
+                isValid = false;
+                apellidosError.textContent = "Apellidos inválidos. Solo letras y espacios.";
+                apellidosError.style.color = 'red';
+            } else {
+                apellidosError.textContent = "";
+            }
+
+            // Validación Documento
+            const documentoInput = form.querySelector('#documento' + (formId ? formId : ''));
+            const documentoError = form.querySelector('#documentoError' + (formId ? formId : ''));
+            const documentoValue = documentoInput.value.trim();
+            if (!/^\d{7,10}$/.test(documentoValue)) {
+                isValid = false;
+                documentoError.textContent = "Documento inválido. Debe contener entre 7 y 10 dígitos.";
+                documentoError.style.color = 'red';
+            } else {
+                documentoError.textContent = "";
+            }
+
+            // Validación Email
+            const emailInput = form.querySelector('#email' + (formId ? formId : ''));
+            const emailError = form.querySelector('#emailError' + (formId ? formId : ''));
+            const emailValue = emailInput.value.trim();
+            if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(emailValue)) {
+                isValid = false;
+                emailError.textContent = "Email inválido.";
+                emailError.style.color = 'red';
+            } else if (!emailValue.includes('@gmail') && !emailValue.includes('@outlook') && !emailValue.includes('@hotmail')) {
+                isValid = false;
+                emailError.textContent = "Email debe ser de Gmail, Outlook o Hotmail.";
+                emailError.style.color = 'red';
+            } else if (!emailValue.endsWith('.com')) {
+                isValid = false;
+                emailError.textContent = "Email debe terminar en .com.";
+                emailError.style.color = 'red';
+            } else {
+                emailError.textContent = "";
+            }
+
+            // Validación Dirección
+            const direccionInput = form.querySelector('#direccion' + (formId ? formId : ''));
+            const direccionError = form.querySelector('#direccionError' + (formId ? formId : ''));
+            const direccionValue = direccionInput.value.trim();
+            if (!/^Avenida\s|^Calle\s|^Diagonal\s|^Carrera\s/.test(direccionValue)) {
+                isValid = false;
+                direccionError.textContent = "Dirección inválida. Debe comenzar con Avenida, Calle, Diagonal o Carrera.";
+                direccionError.style.color = 'red';
+            } else {
+                direccionError.textContent = "";
+            }
+
+            // Validación Teléfono
+            const telefonoInput = form.querySelector('#telefono' + (formId ? formId : ''));
+            const telefonoError = form.querySelector('#telefonoError' + (formId ? formId : ''));
+            const telefonoValue = telefonoInput.value.trim();
+            if (!/^\d{7,10}$/.test(telefonoValue)) {
+                isValid = false;
+                telefonoError.textContent = "Teléfono inválido. Debe contener entre 7 y 10 dígitos.";
+                telefonoError.style.color = 'red';
+            } else {
+                telefonoError.textContent = "";
+            }
+
+            return isValid;
+        }
+    });
+</script>
+
+{% endblock %}
